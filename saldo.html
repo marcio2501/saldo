@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Adicionar Saldo</title>
+</head>
+<body>
+
+<h2>Adicionar saldo</h2>
+
+<input type="number" id="valor" placeholder="Digite o valor">
+<button onclick="pagar()">Pagar</button>
+
+<script>
+async function pagar() {
+    let valor = document.getElementById("valor").value;
+
+    let res = await fetch("/criar-pagamento", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ valor })
+    });
+
+    let data = await res.json();
+
+    // Redireciona para o checkout do Mercado Pago
+    window.location.href = data.init_point;
+}
+</script>
+
+</body>
+</html>
