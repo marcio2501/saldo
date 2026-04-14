@@ -1,32 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Adicionar Saldo</title>
+<meta charset="UTF-8">
+<title>Pagamentos</title>
 </head>
-<body>
 
-<h2>Adicionar saldo</h2>
+<body style="text-align:center;font-family:Arial">
 
-<input type="number" id="valor" placeholder="Digite o valor">
-<button onclick="pagar()">Pagar</button>
+<h1>💰 Total pago</h1>
+
+<h2 id="valor">Carregando...</h2>
 
 <script>
-async function pagar() {
-    let valor = document.getElementById("valor").value;
 
-    let res = await fetch("/criar-pagamento", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ valor })
-    });
+async function carregar(){
+    let r = await fetch("saldo.php");
+    let t = await r.text();
 
-    let data = await res.json();
-
-    // Redireciona para o checkout do Mercado Pago
-    window.location.href = data.init_point;
+    document.getElementById("valor").innerText = "R$ " + t;
 }
+
+setInterval(carregar, 3000);
+carregar();
+
 </script>
 
 </body>
