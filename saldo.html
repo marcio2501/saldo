@@ -1,28 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Pagamentos</title>
-</head>
+<title>Saldo Depositado</title>
 
-<body style="text-align:center;font-family:Arial">
-
-<h1>💰 Total pago</h1>
-
-<h2 id="valor">Carregando...</h2>
-
-<script>
-
-async function carregar(){
-    let r = await fetch("saldo.php");
-    let t = await r.text();
-
-    document.getElementById("valor").innerText = "R$ " + t;
+<style>
+body {
+  background: #020617;
+  color: #fff;
+  font-family: Arial;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 
-setInterval(carregar, 3000);
-carregar();
+.container {
+  text-align: center;
+}
 
+h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #94a3b8;
+}
+
+#valor {
+  font-size: 80px;
+  color: #22c55e;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>💰 Saldo Depositado</h1>
+  <div id="valor">R$ 0,00</div>
+</div>
+
+<script>
+const API = "https://pagamento.helioho.st/api.php";
+
+let ultimoTimestamp = null;
+
+function formatar(v) {
+  return Number(v).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+async function atualizar() {
+  try {
+    const res = await fetch(API);
+    const data = await res.json();
+
+    // Filtra apenas aprovados
+    const aprovados = data.pagamentos.filter(p => p.status === "approved");
+
+    if (aprovados.length === 0) return;
+
+    const ultimo = aprovados[aprovados.length - 1];
+
+    // Só atualiza se for pagamento novo
+    if (ultimoTimestamp !== ultimo.data) {
+      ultimoTimestamp = ultimo.data;
+
+      document.getElementById("valor").innerText =
+        formatar(ultimo.valor);
+    }
+
+  } catch (e) {
+    console.error("Erro:", e);
+  }
+}
+
+// Atualiza a cada 5 segundos
+setInterval(atualizar, 5000);
+
+// Começa zerado (não puxa histórico)
 </script>
 
 </body>
