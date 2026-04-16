@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login com Google</title>
+
+  <!-- Script oficial do Google -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 300px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .user-info {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Entrar com Google</h2>
+
+  <!-- CONFIG DO GOOGLE -->
+  <div id="g_id_onload"
+       data-client_id="23150081206-lnlifd6mske85annts6qjic0vbscm83g.apps.googleusercontent.com"
+       data-callback="handleCredentialResponse"
+       data-auto_prompt="false">
+  </div>
+
+  <!-- BOTÃO -->
+  <div class="g_id_signin"
+       data-type="standard"
+       data-size="large"
+       data-theme="outline">
+  </div>
+
+  <!-- INFO DO USUÁRIO -->
+  <div class="user-info" id="userInfo"></div>
+</div>
+
+<script>
+  function handleCredentialResponse(response) {
+    const data = parseJwt(response.credential);
+
+    console.log(data);
+
+    document.getElementById("userInfo").innerHTML = `
+      <p><strong>Nome:</strong> ${data.name}</p>
+      <p><strong>Email:</strong> ${data.email}</p>
+    `;
+  }
+
+  function parseJwt(token) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+  }
+</script>
+
+</body>
+</html>
