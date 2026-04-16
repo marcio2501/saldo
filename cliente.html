@@ -45,6 +45,7 @@ header {
   text-decoration:none;
   font-weight:bold;
   transition:0.2s;
+  cursor:pointer;
 }
 
 .btn-add:hover{
@@ -107,10 +108,10 @@ header {
     <div id="saldoValor">R$ 0,00</div>
   </div>
 
-  <!-- ➕ BOTÃO -->
-  <a href="https://marcio2501.github.io/saldo/pix.html" class="btn-add">
+  <!-- ➕ BOTÃO CORRIGIDO -->
+  <div class="btn-add" onclick="irPix()">
     ➕ Adicionar saldo
-  </a>
+  </div>
 
   <!-- 👤 USUÁRIO -->
   <div class="user-box" onclick="toggleMenu()">
@@ -130,6 +131,11 @@ header {
 </div>
 
 <script>
+// 🔥 REDIRECIONAMENTO FORÇADO (CORRIGIDO)
+function irPix(){
+  window.location.href = "https://marcio2501.github.io/saldo/pix.html";
+}
+
 // 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDL13nI9U6o7EBlLburfoUsRgd24si8bAg",
