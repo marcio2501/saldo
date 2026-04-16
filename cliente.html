@@ -1,215 +1,38 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cartomantes Online</title>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-<style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#f5f7fb;
-}
-
-/* HEADER */
-header {
-  background: linear-gradient(135deg,#007bff,#00c6ff);
-  color:white;
-  padding:15px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-/* SALDO */
-#saldoValor {
-  font-size:20px;
-  font-weight:bold;
-}
-
-/* BOTÃO */
-.btn-add {
-  background:#22c55e;
-  color:white;
-  padding:10px 20px;
-  border-radius:20px;
-  text-decoration:none;
-  font-weight:bold;
-  transition:0.3s;
-}
-
-.btn-add:hover {
-  background:#16a34a;
-}
-
-/* USER */
-.user-box {
-  position:relative;
-  cursor:pointer;
-}
-
-.user-box img {
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  border:2px solid white;
-}
-
-/* MENU */
-.menu {
-  display:none;
-  position:absolute;
-  top:50px;
-  right:0;
-  background:white;
-  color:#333;
-  border-radius:8px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.2);
-  width:150px;
-}
-
-.menu div {
-  padding:10px;
-  cursor:pointer;
-}
-
-.menu div:hover {
-  background:#f1f1f1;
-}
-
-/* CONTEÚDO */
-.container {
-  padding:30px;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-
-  <!-- SALDO -->
-  <div>
-    <small>Saldo disponível</small>
-    <div id="saldoValor">R$ 0,00</div>
-  </div>
-
-  <!-- BOTÃO -->
-  <a href="https://marcio2501.github.io/saldo/pix.html" class="btn-add">
-    ➕ Adicionar saldo
-  </a>
-
-  <!-- USER -->
-  <div class="user-box" onclick="toggleMenu()">
-    <img id="userFoto" src="https://via.placeholder.com/40">
-
-    <div class="menu" id="menu">
-      <div id="userNome"></div>
-      <div onclick="logout()">🚪 Sair</div>
-    </div>
-  </div>
-
-</header>
-
-<div class="container"></div>
-
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDL13nI9U6o7EBlLburfoUsRgd24si8bAg",
-  authDomain: "arquivos-e9875.firebaseapp.com",
-  projectId: "arquivos-e9875"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-/* 🔐 PROTEÇÃO */
 const email = localStorage.getItem("usuario_email");
 
-if(!email){
-  window.location.href = "loguin.html";
-}
-
-/* 🔥 CARREGA USUÁRIO */
-let ultimoProcessado = null;
-
-db.collection("usuarios").doc(email).onSnapshot(doc => {
-  if(doc.exists){
-
-    const data = doc.data();
-
-    document.getElementById("userNome").innerText = data.nome;
-
-    if(data.foto){
-      document.getElementById("userFoto").src = data.foto;
-    }
-
-    const saldo = data.saldo || 0;
-
-    document.getElementById("saldoValor").innerText =
-      saldo.toLocaleString("pt-BR", {
-        style:"currency",
-        currency:"BRL"
-      });
-
-    ultimoProcessado = data.ultimoPagamento || null;
-  }
-});
-
-/* 👤 MENU */
-function toggleMenu(){
-  const menu = document.getElementById("menu");
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
-}
-
-/* 🔓 LOGOUT */
-function logout(){
-  localStorage.clear();
-  window.location.href = "loguin.html";
-}
-
-/* 💳 API PIX (CONFIRMAÇÃO REAL) */
-const API = "https://pagamento.helioho.st/api.php";
+let ultimoID = null;
 
 async function verificarPagamento(){
   try {
-
-    const res = await fetch(API);
+    const res = await fetch("https://pagamento.helioho.st/api.php");
     const data = await res.json();
 
-    const aprovados = data.pagamentos.filter(p => p.status === "approved");
+    const aprovados = data.pagamentos.filter(p => 
+      p.status === "approved" && p.email === email
+    );
 
     if(aprovados.length === 0) return;
 
     const ultimo = aprovados[aprovados.length - 1];
 
-    // 🔥 só atualiza se for novo pagamento
-    if(ultimo.data !== ultimoProcessado){
+    if(ultimo.id !== ultimoID){
 
-      ultimoProcessado = ultimo.data;
+      ultimoID = ultimo.id;
 
       const ref = db.collection("usuarios").doc(email);
 
       await ref.update({
         saldo: firebase.firestore.FieldValue.increment(ultimo.valor),
-        ultimoPagamento: ultimo.data
+        ultimoPagamento: ultimo.id
       });
 
     }
 
   } catch(e){
-    console.error("Erro API:", e);
+    console.error(e);
   }
 }
 
-/* ⏱️ VERIFICA A CADA 5s */
 setInterval(verificarPagamento, 5000);
 </script>
-
-</body>
-</html>
