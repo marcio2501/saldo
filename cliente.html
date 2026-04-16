@@ -1,13 +1,41 @@
 <script>
 const email = localStorage.getItem("usuario_email");
 
-let ultimoID = null;
+if(!email){
+  window.location.href = "loguin.html";
+}
 
+const ref = db.collection("usuarios").doc(email);
+
+// 🔥 CARREGA USUÁRIO + CONTROLE
+let ultimoProcessado = null;
+
+ref.onSnapshot(doc => {
+  if(doc.exists){
+    const data = doc.data();
+
+    // saldo na tela
+    const saldo = data.saldo || 0;
+
+    document.getElementById("saldoValor").innerText =
+      saldo.toLocaleString("pt-BR", {
+        style:"currency",
+        currency:"BRL"
+      });
+
+    // pega último pagamento salvo
+    ultimoProcessado = data.ultimoPagamento || null;
+  }
+});
+
+/* 💳 API PIX */
 async function verificarPagamento(){
   try {
+
     const res = await fetch("https://pagamento.helioho.st/api.php");
     const data = await res.json();
 
+    // 🔥 FILTRA POR USUÁRIO
     const aprovados = data.pagamentos.filter(p => 
       p.status === "approved" && p.email === email
     );
@@ -16,23 +44,22 @@ async function verificarPagamento(){
 
     const ultimo = aprovados[aprovados.length - 1];
 
-    if(ultimo.id !== ultimoID){
+    // 🔥 NÃO DUPLICA
+    if(ultimo.id === ultimoProcessado) return;
 
-      ultimoID = ultimo.id;
+    // 🔥 ATUALIZA FIREBASE
+    await ref.update({
+      saldo: firebase.firestore.FieldValue.increment(Number(ultimo.valor)),
+      ultimoPagamento: ultimo.id
+    });
 
-      const ref = db.collection("usuarios").doc(email);
-
-      await ref.update({
-        saldo: firebase.firestore.FieldValue.increment(ultimo.valor),
-        ultimoPagamento: ultimo.id
-      });
-
-    }
+    console.log("💰 Saldo atualizado:", ultimo.valor);
 
   } catch(e){
-    console.error(e);
+    console.error("Erro PIX:", e);
   }
 }
 
+/* ⏱️ VERIFICA A CADA 5s */
 setInterval(verificarPagamento, 5000);
 </script>
