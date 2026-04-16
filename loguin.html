@@ -26,6 +26,7 @@
       padding:40px;
       border-radius:12px;
       text-align:center;
+      box-shadow:0 10px 25px rgba(0,0,0,0.2);
     }
   </style>
 </head>
@@ -56,24 +57,22 @@ function handleCredentialResponse(response) {
 
   const data = parseJwt(response.credential);
 
-  // 🔥 cria ID único
-  const userId = Date.now();
+  const userId = data.email; // 🔥 agora é único e melhor
 
   // 🔥 salva no firebase
-  db.collection("usuarios").doc(userId.toString()).set({
+  db.collection("usuarios").doc(userId).set({
     nome: data.name,
     email: data.email,
     foto: data.picture,
     timestamp: new Date()
   });
 
-  // 🔥 salva no navegador
+  // 🔥 salva local
   localStorage.setItem("usuario_nome", data.name);
   localStorage.setItem("usuario_email", data.email);
-  localStorage.setItem("usuario_id", userId);
 
-  // 🔥 REDIRECIONA COM ID
-  window.location.href = "https://marcio2501.github.io/saldo/cliente.html?id=" + userId;
+  // 🔥 redireciona
+  window.location.href = "https://marcio2501.github.io/saldo/cliente.html?id=" + encodeURIComponent(userId);
 }
 
 function parseJwt(token) {
