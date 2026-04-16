@@ -54,17 +54,17 @@ body{
   margin-bottom:10px;
 }
 
-/* TEXTO INFORMATIVO */
+/* TEXTO */
 .texto-info{
   text-align:center;
   font-weight:600;
-  color:#1b5e20; /* verde escuro */
+  color:#1b5e20;
   font-size:13px;
   margin-bottom:12px;
   line-height:1.3;
 }
 
-/* 🔥 URGÊNCIA SEM FUNDO */
+/* URGÊNCIA */
 .urgencia{
   text-align:center;
   font-weight:700;
@@ -140,15 +140,10 @@ body{
 
   <div class="box">
 
-    <!-- IMAGEM -->
     <img class="topo-img" src="https://i.ibb.co/6h28fNp/Chat-GPT-Image-11-04-2026-19-41-52.png">
 
-    <!-- TEXTO -->
-    <div class="texto-info">
-     
-    </div>
+    <div class="texto-info"></div>
 
-    <!-- URGÊNCIA LIMPA -->
     <div class="urgencia">
       🔥 Seu consultor está disponível agora<br>
       pode sair em:
@@ -171,13 +166,21 @@ body{
 
 <script>
 
+// 🔐 EMAIL DO USUÁRIO (NOVO)
+const email = localStorage.getItem("usuario_email");
+
+if(!email){
+  alert("Faça login primeiro");
+  window.location.href = "loguin.html";
+}
+
 // DETECTA APP
 const ua = navigator.userAgent.toLowerCase();
 if (ua.includes("instagram") || ua.includes("fbav") || ua.includes("facebook")) {
   document.body.classList.add("app-view");
 }
 
-// CONTADOR 5 A 30
+// CONTADOR
 const contadorEl = document.getElementById("contador");
 
 function iniciarContagem(){
@@ -241,7 +244,7 @@ minutos.forEach(m=>{
 
 });
 
-// PAGAMENTO
+// 💳 PAGAMENTO (MODIFICADO)
 btn.onclick = () => {
 
   btn.innerText = "Processando...";
@@ -251,9 +254,11 @@ btn.onclick = () => {
 
     const valorFormatado = precoFinal.replace('.', ',');
     const descricao = encodeURIComponent(`Consulta com ${nome} - ${minutosSelecionados} minutos`);
+    const emailEncoded = encodeURIComponent(email);
 
+    // 🔥 AQUI ESTÁ A ÚNICA MUDANÇA REAL
     window.location.href =
-    `https://pagamentopix.helioho.st/index.php?valor=${valorFormatado}&descricao=${descricao}`;
+    `https://pagamentopix.helioho.st/index.php?valor=${valorFormatado}&descricao=${descricao}&email=${emailEncoded}&redirect=${encodeURIComponent("https://marcio2501.github.io/saldo/cliente.html")}`;
 
   }, 800);
 
