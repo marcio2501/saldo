@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cliente - Empresa</title>
+<title>Área do Cliente</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -21,6 +21,7 @@ header {
   color:white;
   padding:20px;
   text-align:center;
+  position:relative;
 }
 
 .user {
@@ -28,6 +29,7 @@ header {
   top:10px;
   right:20px;
   font-size:14px;
+  font-weight:bold;
 }
 
 nav {
@@ -51,6 +53,7 @@ nav a {
   padding:20px;
   margin-bottom:20px;
   border-radius:10px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 </style>
 </head>
@@ -58,7 +61,7 @@ nav a {
 <body>
 
 <header>
-  <div class="user" id="userNome"></div>
+  <div class="user" id="userNome">Carregando...</div>
   <h1>Área do Cliente</h1>
 </header>
 
@@ -86,30 +89,33 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔥 pega ID da URL
+// 🔥 pega da URL
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get("id");
 
-// 🔥 tenta pegar do localStorage
+// 🔥 tenta local primeiro
 const nomeLocal = localStorage.getItem("usuario_nome");
 
 if(nomeLocal){
   document.getElementById("userNome").innerText = "👤 " + nomeLocal;
   document.getElementById("mensagem").innerText = "Bem-vindo, " + nomeLocal;
-} else if(userId){
+} 
 
-  // 🔥 busca no firebase se não tiver local
+// 🔥 busca no firebase se necessário
+if(userId){
   db.collection("usuarios").doc(userId).get()
   .then(doc=>{
     if(doc.exists){
       const data = doc.data();
+
       document.getElementById("userNome").innerText = "👤 " + data.nome;
       document.getElementById("mensagem").innerText = "Bem-vindo, " + data.nome;
+
+      // salva local
+      localStorage.setItem("usuario_nome", data.nome);
+      localStorage.setItem("usuario_email", data.email);
     }
   });
-
-} else {
-  document.getElementById("mensagem").innerText = "Usuário não identificado";
 }
 </script>
 
