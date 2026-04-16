@@ -42,10 +42,9 @@ header {
   color:white;
   padding:10px 20px;
   border-radius:20px;
-  text-decoration:none;
   font-weight:bold;
-  transition:0.2s;
   cursor:pointer;
+  transition:0.2s;
 }
 
 .btn-add:hover{
@@ -73,13 +72,14 @@ header {
   display:none;
   position:absolute;
   right:0;
-  top:50px;
+  top:55px;
   background:white;
   color:#333;
   border-radius:10px;
   width:160px;
   box-shadow:0 5px 20px rgba(0,0,0,0.2);
   overflow:hidden;
+  z-index:999;
 }
 
 .menu div {
@@ -108,13 +108,13 @@ header {
     <div id="saldoValor">R$ 0,00</div>
   </div>
 
-  <!-- ➕ BOTÃO CORRIGIDO -->
+  <!-- ➕ BOTÃO -->
   <div class="btn-add" onclick="irPix()">
     ➕ Adicionar saldo
   </div>
 
   <!-- 👤 USUÁRIO -->
-  <div class="user-box" onclick="toggleMenu()">
+  <div class="user-box" onclick="toggleMenu(event)">
     <span id="userNome">Carregando...</span>
     <img id="userFoto" src="https://via.placeholder.com/40">
 
@@ -131,9 +131,10 @@ header {
 </div>
 
 <script>
-// 🔥 REDIRECIONAMENTO FORÇADO (CORRIGIDO)
+
+// 🔥 REDIRECIONAMENTO 100% CORRETO
 function irPix(){
-  window.location.href = "https://marcio2501.github.io/saldo/pix.html";
+  window.location.href = "/saldo/pix.html";
 }
 
 // 🔥 FIREBASE
@@ -166,9 +167,9 @@ ref.onSnapshot(doc => {
 
     document.getElementById("userNome").innerText = data.nome || "Usuário";
 
-    if(data.foto){
-      document.getElementById("userFoto").src = data.foto;
-    }
+    // 🔥 GARANTE FOTO SEMPRE
+    document.getElementById("userFoto").src =
+      data.foto || "https://i.ibb.co/4pDNDk1/avatar.png";
 
     const saldo = data.saldo || 0;
 
@@ -182,7 +183,7 @@ ref.onSnapshot(doc => {
   }
 });
 
-// 💳 VERIFICA PIX
+// 💳 VERIFICA PIX (INDIVIDUAL)
 async function verificarPagamento(){
   try {
 
@@ -214,17 +215,24 @@ async function verificarPagamento(){
 // 🔁 LOOP
 setInterval(verificarPagamento, 5000);
 
-// 👤 MENU
-function toggleMenu(){
+// 👤 MENU (CORRIGIDO)
+function toggleMenu(e){
+  e.stopPropagation();
   const m = document.getElementById("menu");
   m.style.display = m.style.display === "block" ? "none" : "block";
 }
+
+// FECHAR MENU AO CLICAR FORA
+document.addEventListener("click", () => {
+  document.getElementById("menu").style.display = "none";
+});
 
 // 🚪 LOGOUT
 function logout(){
   localStorage.clear();
   window.location.href = "loguin.html";
 }
+
 </script>
 
 </body>
