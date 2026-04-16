@@ -27,20 +27,30 @@
       border-radius:12px;
       text-align:center;
       box-shadow:0 10px 25px rgba(0,0,0,0.2);
+      width:300px;
+    }
+
+    h2 {
+      margin-bottom:20px;
     }
   </style>
 </head>
 <body>
 
 <div class="box">
-  <h2>Login com Google</h2>
+  <h2>Entrar com Google</h2>
 
   <div id="g_id_onload"
        data-client_id="23150081206-lnlifd6mske85annts6qjic0vbscm83g.apps.googleusercontent.com"
-       data-callback="handleCredentialResponse">
+       data-callback="handleCredentialResponse"
+       data-auto_prompt="false">
   </div>
 
-  <div class="g_id_signin"></div>
+  <div class="g_id_signin"
+       data-type="standard"
+       data-size="large"
+       data-theme="outline">
+  </div>
 </div>
 
 <script>
@@ -53,26 +63,47 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-function handleCredentialResponse(response) {
+async function handleCredentialResponse(response) {
 
   const data = parseJwt(response.credential);
 
-  const userId = data.email; // 🔥 agora é único e melhor
+  const userId = data.email;
 
-  // 🔥 salva no firebase
-  db.collection("usuarios").doc(userId).set({
-    nome: data.name,
-    email: data.email,
-    foto: data.picture,
-    timestamp: new Date()
-  });
+  try {
 
-  // 🔥 salva local
-  localStorage.setItem("usuario_nome", data.name);
-  localStorage.setItem("usuario_email", data.email);
+    const ref = db.collection("usuarios").doc(userId);
+    const doc = await ref.get();
 
-  // 🔥 redireciona
-  window.location.href = "https://marcio2501.github.io/saldo/cliente.html?id=" + encodeURIComponent(userId);
+    if (!doc.exists) {
+      // 🔥 cria usuário novo
+      await ref.set({
+        nome: data.name,
+        email: data.email,
+        foto: data.picture,
+        saldo: 0, // 🔥 importante
+        criadoEm: new Date()
+      });
+    } else {
+      // 🔄 atualiza apenas dados básicos (não perde saldo)
+      await ref.update({
+        nome: data.name,
+        foto: data.picture
+      });
+    }
+
+    // 💾 salva local
+    localStorage.setItem("usuario_nome", data.name);
+    localStorage.setItem("usuario_email", data.email);
+
+    // 🚀 redireciona
+    window.location.href =
+      "https://marcio2501.github.io/saldo/cliente.html?id=" +
+      encodeURIComponent(userId);
+
+  } catch (e) {
+    console.error("Erro login:", e);
+    alert("Erro ao fazer login");
+  }
 }
 
 function parseJwt(token) {
