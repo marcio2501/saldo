@@ -1,20 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartomantes Online</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background:#f5f7fb;
+}
+
+/* HEADER */
+header {
+  background: linear-gradient(135deg,#007bff,#00c6ff);
+  color:white;
+  padding:15px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+/* SALDO */
+.saldo {
+  font-size:14px;
+}
+
+#saldoValor {
+  font-size:20px;
+  font-weight:bold;
+}
+
+/* BOTÃO */
+.btn-add {
+  background:#22c55e;
+  color:white;
+  padding:10px 20px;
+  border-radius:20px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+/* USER */
+.user-box {
+  position:relative;
+  cursor:pointer;
+}
+
+.user-box img {
+  width:40px;
+  height:40px;
+  border-radius:50%;
+}
+
+/* MENU */
+.menu {
+  display:none;
+  position:absolute;
+  right:0;
+  top:50px;
+  background:white;
+  color:#333;
+  border-radius:8px;
+  width:150px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+.menu div {
+  padding:10px;
+  cursor:pointer;
+}
+
+.menu div:hover {
+  background:#eee;
+}
+
+/* CONTEÚDO */
+.container {
+  padding:30px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <!-- SALDO -->
+  <div class="saldo">
+    Saldo disponível<br>
+    <div id="saldoValor">R$ 0,00</div>
+  </div>
+
+  <!-- BOTÃO -->
+  <a href="pix.html" class="btn-add">➕ Adicionar saldo</a>
+
+  <!-- USER -->
+  <div class="user-box" onclick="toggleMenu()">
+    <img id="userFoto" src="https://via.placeholder.com/40">
+
+    <div class="menu" id="menu">
+      <div id="userNome"></div>
+      <div onclick="logout()">🚪 Sair</div>
+    </div>
+  </div>
+
+</header>
+
+<div class="container">
+  <h2>Bem-vindo</h2>
+  <p>Seu painel está ativo.</p>
+</div>
+
 <script>
+// 🔥 CONFIG FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyDL13nI9U6o7EBlLburfoUsRgd24si8bAg",
+  authDomain: "arquivos-e9875.firebaseapp.com",
+  projectId: "arquivos-e9875"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 🔐 PROTEÇÃO LOGIN
 const email = localStorage.getItem("usuario_email");
 
 if(!email){
   window.location.href = "loguin.html";
 }
 
+// 🔥 REFERÊNCIA USUÁRIO
 const ref = db.collection("usuarios").doc(email);
 
-// 🔥 CARREGA USUÁRIO + CONTROLE
 let ultimoProcessado = null;
 
+// 🔥 CARREGA DADOS
 ref.onSnapshot(doc => {
   if(doc.exists){
+
     const data = doc.data();
 
-    // saldo na tela
+    document.getElementById("userNome").innerText = data.nome || "Usuário";
+
+    if(data.foto){
+      document.getElementById("userFoto").src = data.foto;
+    }
+
     const saldo = data.saldo || 0;
 
     document.getElementById("saldoValor").innerText =
@@ -23,19 +160,17 @@ ref.onSnapshot(doc => {
         currency:"BRL"
       });
 
-    // pega último pagamento salvo
     ultimoProcessado = data.ultimoPagamento || null;
   }
 });
 
-/* 💳 API PIX */
+// 💳 VERIFICA PAGAMENTO
 async function verificarPagamento(){
   try {
 
     const res = await fetch("https://pagamento.helioho.st/api.php");
     const data = await res.json();
 
-    // 🔥 FILTRA POR USUÁRIO
     const aprovados = data.pagamentos.filter(p => 
       p.status === "approved" && p.email === email
     );
@@ -44,22 +179,33 @@ async function verificarPagamento(){
 
     const ultimo = aprovados[aprovados.length - 1];
 
-    // 🔥 NÃO DUPLICA
     if(ultimo.id === ultimoProcessado) return;
 
-    // 🔥 ATUALIZA FIREBASE
     await ref.update({
       saldo: firebase.firestore.FieldValue.increment(Number(ultimo.valor)),
       ultimoPagamento: ultimo.id
     });
-
-    console.log("💰 Saldo atualizado:", ultimo.valor);
 
   } catch(e){
     console.error("Erro PIX:", e);
   }
 }
 
-/* ⏱️ VERIFICA A CADA 5s */
+// 🔁 LOOP
 setInterval(verificarPagamento, 5000);
+
+// 👤 MENU
+function toggleMenu(){
+  const m = document.getElementById("menu");
+  m.style.display = m.style.display === "block" ? "none" : "block";
+}
+
+// 🚪 LOGOUT
+function logout(){
+  localStorage.clear();
+  window.location.href = "loguin.html";
+}
 </script>
+
+</body>
+</html>
