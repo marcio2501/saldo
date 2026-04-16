@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Site Simples</title>
+
     <style>
         body {
             margin: 0;
@@ -11,11 +12,31 @@
             background-color: #f4f4f4;
         }
 
+        /* 🔝 BOTÃO LOGIN */
+        .login-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #ffd700;
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #ffcc00;
+        }
+
         header {
             background-color: #333;
             color: white;
             padding: 15px;
             text-align: center;
+            position: relative;
         }
 
         nav {
@@ -61,6 +82,10 @@
 <body>
 
 <header>
+    <a href="https://marcio2501.github.io/saldo/loguin.html" class="login-btn">
+        Fazer Login
+    </a>
+
     <h1>Meu Site</h1>
     <p>Um site simples em HTML</p>
 </header>
