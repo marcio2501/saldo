@@ -32,7 +32,7 @@ header {
 }
 
 #saldoValor {
-  font-size:20px;
+  font-size:22px;
   font-weight:bold;
 }
 
@@ -44,18 +44,27 @@ header {
   border-radius:20px;
   text-decoration:none;
   font-weight:bold;
+  transition:0.2s;
+}
+
+.btn-add:hover{
+  transform:scale(1.05);
 }
 
 /* USER */
 .user-box {
   position:relative;
   cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
 .user-box img {
   width:40px;
   height:40px;
   border-radius:50%;
+  border:2px solid white;
 }
 
 /* MENU */
@@ -66,18 +75,19 @@ header {
   top:50px;
   background:white;
   color:#333;
-  border-radius:8px;
-  width:150px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  border-radius:10px;
+  width:160px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.2);
+  overflow:hidden;
 }
 
 .menu div {
-  padding:10px;
+  padding:12px;
   cursor:pointer;
 }
 
 .menu div:hover {
-  background:#eee;
+  background:#f0f0f0;
 }
 
 /* CONTEÚDO */
@@ -91,21 +101,23 @@ header {
 
 <header>
 
-  <!-- SALDO -->
+  <!-- 💰 SALDO -->
   <div class="saldo">
     Saldo disponível<br>
     <div id="saldoValor">R$ 0,00</div>
   </div>
 
-  <!-- BOTÃO -->
-  <a href="pix.html" class="btn-add">➕ Adicionar saldo</a>
+  <!-- ➕ BOTÃO -->
+  <a href="https://marcio2501.github.io/saldo/pix.html" class="btn-add">
+    ➕ Adicionar saldo
+  </a>
 
-  <!-- USER -->
+  <!-- 👤 USUÁRIO -->
   <div class="user-box" onclick="toggleMenu()">
+    <span id="userNome">Carregando...</span>
     <img id="userFoto" src="https://via.placeholder.com/40">
 
     <div class="menu" id="menu">
-      <div id="userNome"></div>
       <div onclick="logout()">🚪 Sair</div>
     </div>
   </div>
@@ -113,12 +125,12 @@ header {
 </header>
 
 <div class="container">
-  <h2>Bem-vindo</h2>
+  <h2>Bem-vindo 👋</h2>
   <p>Seu painel está ativo.</p>
 </div>
 
 <script>
-// 🔥 CONFIG FIREBASE
+// 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDL13nI9U6o7EBlLburfoUsRgd24si8bAg",
   authDomain: "arquivos-e9875.firebaseapp.com",
@@ -128,19 +140,19 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔐 PROTEÇÃO LOGIN
+// 🔐 LOGIN
 const email = localStorage.getItem("usuario_email");
 
 if(!email){
   window.location.href = "loguin.html";
 }
 
-// 🔥 REFERÊNCIA USUÁRIO
+// 🔥 REFERÊNCIA
 const ref = db.collection("usuarios").doc(email);
 
 let ultimoProcessado = null;
 
-// 🔥 CARREGA DADOS
+// 🔥 CARREGA USUÁRIO
 ref.onSnapshot(doc => {
   if(doc.exists){
 
@@ -164,7 +176,7 @@ ref.onSnapshot(doc => {
   }
 });
 
-// 💳 VERIFICA PAGAMENTO
+// 💳 VERIFICA PIX
 async function verificarPagamento(){
   try {
 
@@ -185,6 +197,8 @@ async function verificarPagamento(){
       saldo: firebase.firestore.FieldValue.increment(Number(ultimo.valor)),
       ultimoPagamento: ultimo.id
     });
+
+    console.log("💰 Saldo atualizado");
 
   } catch(e){
     console.error("Erro PIX:", e);
