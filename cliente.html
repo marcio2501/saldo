@@ -32,7 +32,7 @@ header {
   font-weight:bold;
 }
 
-/* BOTÃO COM ANIMAÇÃO */
+/* BOTÃO */
 .btn-add {
   background:#22c55e;
   color:white;
@@ -40,17 +40,10 @@ header {
   border-radius:20px;
   text-decoration:none;
   font-weight:bold;
-  animation:pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+  transition:0.3s;
 }
 
 .btn-add:hover {
-  animation:none;
   background:#16a34a;
 }
 
@@ -142,9 +135,12 @@ if(!email){
   window.location.href = "loguin.html";
 }
 
-/* 🔥 DADOS USUÁRIO */
+/* 🔥 CARREGA USUÁRIO */
+let ultimoProcessado = null;
+
 db.collection("usuarios").doc(email).onSnapshot(doc => {
   if(doc.exists){
+
     const data = doc.data();
 
     document.getElementById("userNome").innerText = data.nome;
@@ -160,6 +156,8 @@ db.collection("usuarios").doc(email).onSnapshot(doc => {
         style:"currency",
         currency:"BRL"
       });
+
+    ultimoProcessado = data.ultimoPagamento || null;
   }
 });
 
@@ -175,13 +173,12 @@ function logout(){
   window.location.href = "loguin.html";
 }
 
-/* 💳 PIX AUTOMÁTICO (SIMULAÇÃO + REAL API) */
+/* 💳 API PIX (CONFIRMAÇÃO REAL) */
 const API = "https://pagamento.helioho.st/api.php";
 
-let ultimoTimestamp = null;
-
-async function atualizarSaldoPIX(){
+async function verificarPagamento(){
   try {
+
     const res = await fetch(API);
     const data = await res.json();
 
@@ -191,23 +188,27 @@ async function atualizarSaldoPIX(){
 
     const ultimo = aprovados[aprovados.length - 1];
 
-    if(ultimoTimestamp !== ultimo.data){
-      ultimoTimestamp = ultimo.data;
+    // 🔥 só atualiza se for novo pagamento
+    if(ultimo.data !== ultimoProcessado){
 
-      // 🔥 adiciona saldo no usuário
+      ultimoProcessado = ultimo.data;
+
       const ref = db.collection("usuarios").doc(email);
 
       await ref.update({
-        saldo: firebase.firestore.FieldValue.increment(ultimo.valor)
+        saldo: firebase.firestore.FieldValue.increment(ultimo.valor),
+        ultimoPagamento: ultimo.data
       });
+
     }
 
   } catch(e){
-    console.error("Erro PIX:", e);
+    console.error("Erro API:", e);
   }
 }
 
-setInterval(atualizarSaldoPIX, 5000);
+/* ⏱️ VERIFICA A CADA 5s */
+setInterval(verificarPagamento, 5000);
 </script>
 
 </body>
