@@ -26,7 +26,6 @@ body{
   align-items:center;
 }
 
-/* CONTAINER */
 .container{
   width:100%;
   max-width:420px;
@@ -39,7 +38,6 @@ body{
   to{opacity:1; transform:translateY(0);}
 }
 
-/* CARD */
 .box{
   background:#fff;
   border-radius:20px;
@@ -47,24 +45,20 @@ body{
   box-shadow:0 8px 25px rgba(0,0,0,0.08);
 }
 
-/* IMAGEM */
 .topo-img{
   width:100%;
   border-radius:12px;
   margin-bottom:10px;
 }
 
-/* TEXTO */
 .texto-info{
   text-align:center;
   font-weight:600;
   color:#1b5e20;
   font-size:13px;
   margin-bottom:12px;
-  line-height:1.3;
 }
 
-/* URGÊNCIA */
 .urgencia{
   text-align:center;
   font-weight:700;
@@ -76,10 +70,8 @@ body{
 .urgencia span{
   font-size:20px;
   display:block;
-  margin-top:4px;
 }
 
-/* OPÇÕES */
 .option{
   border:1px solid #e6c068;
   padding:18px;
@@ -93,14 +85,11 @@ body{
 
 .option.selected{
   background:#ffe58a;
-  border-color:#d4af37;
 }
 
-/* BOTÃO */
 .btn{
   width:100%;
   padding:16px;
-  margin-top:10px;
   border:none;
   border-radius:25px;
   background:linear-gradient(45deg,#00c9a7,#00bfa5);
@@ -113,40 +102,18 @@ body{
   opacity:0.5;
 }
 
-/* AVISO */
-.aviso{
-  margin-top:12px;
-  background:#ffe58a;
-  border:1px solid #d4af37;
-  padding:14px;
-  border-radius:14px;
-  font-size:13px;
-  font-weight:600;
-  text-align:center;
-  color:#5a4a00;
-}
-
-/* INSTAGRAM FIX */
-.app-view body{
-  display:block;
-}
-
 </style>
 </head>
 
 <body>
 
 <div class="container">
-
   <div class="box">
 
     <img class="topo-img" src="https://i.ibb.co/6h28fNp/Chat-GPT-Image-11-04-2026-19-41-52.png">
 
-    <div class="texto-info"></div>
-
     <div class="urgencia">
       🔥 Seu consultor está disponível agora<br>
-      pode sair em:
       <span id="contador">20</span>
     </div>
 
@@ -156,17 +123,12 @@ body{
       Realizar Pagamento
     </button>
 
-    <div class="aviso">
-      ⚠️ Após o pagamento aguarde até 10 segundos. Não saia da página. Você será direcionado para o atendimento.
-    </div>
-
   </div>
-
 </div>
 
 <script>
 
-// 🔐 EMAIL DO USUÁRIO (NOVO)
+// 🔐 EMAIL
 const email = localStorage.getItem("usuario_email");
 
 if(!email){
@@ -174,43 +136,28 @@ if(!email){
   window.location.href = "loguin.html";
 }
 
-// DETECTA APP
-const ua = navigator.userAgent.toLowerCase();
-if (ua.includes("instagram") || ua.includes("fbav") || ua.includes("facebook")) {
-  document.body.classList.add("app-view");
-}
-
 // CONTADOR
 const contadorEl = document.getElementById("contador");
 
 function iniciarContagem(){
-  let tempo = Math.floor(Math.random() * 26) + 5;
+  let tempo = Math.floor(Math.random() * 20) + 10;
   contadorEl.innerText = tempo;
 
-  const intervalo = setInterval(()=>{
+  setInterval(()=>{
     tempo--;
     contadorEl.innerText = tempo;
 
     if(tempo <= 0){
-      clearInterval(intervalo);
-      iniciarContagem();
+      tempo = 20;
     }
-
   },1000);
 }
 
 iniciarContagem();
 
-// DADOS
-const nome = localStorage.getItem("consultorNome");
-const valor = parseFloat(localStorage.getItem("consultorValor")) || 1.99;
-
-if(!nome){
-  window.location.href = "/aplicativo/index.html";
-}
-
-// MINUTOS
+// PACOTES
 const minutos = [5,10,20,30];
+const valorBase = 1.99;
 
 let precoFinal = null;
 let minutosSelecionados = null;
@@ -220,7 +167,7 @@ const btn = document.getElementById("btn");
 
 minutos.forEach(m=>{
 
-  const preco = (m * valor).toFixed(2);
+  const preco = (m * valorBase).toFixed(2);
 
   const div = document.createElement("div");
   div.className="option";
@@ -244,7 +191,7 @@ minutos.forEach(m=>{
 
 });
 
-// 💳 PAGAMENTO (MODIFICADO)
+// 💳 PAGAMENTO
 btn.onclick = () => {
 
   btn.innerText = "Processando...";
@@ -253,10 +200,9 @@ btn.onclick = () => {
   setTimeout(()=>{
 
     const valorFormatado = precoFinal.replace('.', ',');
-    const descricao = encodeURIComponent(`Consulta com ${nome} - ${minutosSelecionados} minutos`);
+    const descricao = encodeURIComponent(`Consulta - ${minutosSelecionados} minutos`);
     const emailEncoded = encodeURIComponent(email);
 
-    // 🔥 AQUI ESTÁ A ÚNICA MUDANÇA REAL
     window.location.href =
     `https://pagamentopix.helioho.st/index.php?valor=${valorFormatado}&descricao=${descricao}&email=${emailEncoded}&redirect=${encodeURIComponent("https://marcio2501.github.io/saldo/cliente.html")}`;
 
