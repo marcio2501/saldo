@@ -16,7 +16,7 @@ body {
   background:#f5f7fb;
 }
 
-/* 🔵 HEADER */
+/* HEADER */
 header {
   background: linear-gradient(135deg,#007bff,#00c6ff);
   color:white;
@@ -26,29 +26,38 @@ header {
   align-items:center;
 }
 
-/* 🏷️ LOGO */
-.logo {
-  font-size:18px;
-  font-weight:bold;
-}
-
-/* 💰 SALDO */
-.saldo-topo small {
-  display:block;
-  font-size:12px;
-  opacity:0.8;
-}
-
+/* SALDO */
 #saldoValor {
   font-size:20px;
   font-weight:bold;
 }
 
-/* 👤 USUÁRIO */
+/* BOTÃO COM ANIMAÇÃO */
+.btn-add {
+  background:#22c55e;
+  color:white;
+  padding:10px 20px;
+  border-radius:20px;
+  text-decoration:none;
+  font-weight:bold;
+  animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.btn-add:hover {
+  animation:none;
+  background:#16a34a;
+}
+
+/* USER */
 .user-box {
-  display:flex;
-  align-items:center;
-  gap:10px;
+  position:relative;
+  cursor:pointer;
 }
 
 .user-box img {
@@ -58,24 +67,26 @@ header {
   border:2px solid white;
 }
 
-/* INFO */
-.user-info {
-  text-align:right;
-  font-size:13px;
+/* MENU */
+.menu {
+  display:none;
+  position:absolute;
+  top:50px;
+  right:0;
+  background:white;
+  color:#333;
+  border-radius:8px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  width:150px;
 }
 
-/* 🔴 BOTÃO SAIR */
-.logout {
-  display:block;
-  font-size:12px;
-  margin-top:3px;
-  color:#ffe;
+.menu div {
+  padding:10px;
   cursor:pointer;
-  text-decoration:underline;
 }
 
-.logout:hover {
-  color:#fff;
+.menu div:hover {
+  background:#f1f1f1;
 }
 
 /* CONTEÚDO */
@@ -89,28 +100,30 @@ header {
 
 <header>
 
-  <!-- 💰 SALDO -->
-  <div class="saldo-topo">
+  <!-- SALDO -->
+  <div>
     <small>Saldo disponível</small>
     <div id="saldoValor">R$ 0,00</div>
   </div>
 
-  <!-- 🏷️ SITE -->
-  <div class="logo">Cartomantes Online</div>
+  <!-- BOTÃO -->
+  <a href="https://marcio2501.github.io/saldo/pix.html" class="btn-add">
+    ➕ Adicionar saldo
+  </a>
 
-  <!-- 👤 USUÁRIO -->
-  <div class="user-box">
-    <div class="user-info">
-      <div id="userNome">Carregando...</div>
-      <span class="logout" onclick="logout()">Sair</span>
+  <!-- USER -->
+  <div class="user-box" onclick="toggleMenu()">
+    <img id="userFoto" src="https://via.placeholder.com/40">
+
+    <div class="menu" id="menu">
+      <div id="userNome"></div>
+      <div onclick="logout()">🚪 Sair</div>
     </div>
-    <img id="userFoto" src="https://via.placeholder.com/40" alt="">
   </div>
 
 </header>
 
-<div class="container">
-</div>
+<div class="container"></div>
 
 <script>
 const firebaseConfig = {
@@ -122,27 +135,24 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+/* 🔐 PROTEÇÃO */
 const email = localStorage.getItem("usuario_email");
 
 if(!email){
   window.location.href = "loguin.html";
 }
 
-/* 🔥 CARREGA DADOS */
+/* 🔥 DADOS USUÁRIO */
 db.collection("usuarios").doc(email).onSnapshot(doc => {
   if(doc.exists){
-
     const data = doc.data();
 
-    // nome
-    document.getElementById("userNome").innerText = data.nome || "Usuário";
+    document.getElementById("userNome").innerText = data.nome;
 
-    // foto (corrigido)
     if(data.foto){
       document.getElementById("userFoto").src = data.foto;
     }
 
-    // saldo
     const saldo = data.saldo || 0;
 
     document.getElementById("saldoValor").innerText =
@@ -153,11 +163,51 @@ db.collection("usuarios").doc(email).onSnapshot(doc => {
   }
 });
 
+/* 👤 MENU */
+function toggleMenu(){
+  const menu = document.getElementById("menu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
 /* 🔓 LOGOUT */
 function logout(){
   localStorage.clear();
   window.location.href = "loguin.html";
 }
+
+/* 💳 PIX AUTOMÁTICO (SIMULAÇÃO + REAL API) */
+const API = "https://pagamento.helioho.st/api.php";
+
+let ultimoTimestamp = null;
+
+async function atualizarSaldoPIX(){
+  try {
+    const res = await fetch(API);
+    const data = await res.json();
+
+    const aprovados = data.pagamentos.filter(p => p.status === "approved");
+
+    if(aprovados.length === 0) return;
+
+    const ultimo = aprovados[aprovados.length - 1];
+
+    if(ultimoTimestamp !== ultimo.data){
+      ultimoTimestamp = ultimo.data;
+
+      // 🔥 adiciona saldo no usuário
+      const ref = db.collection("usuarios").doc(email);
+
+      await ref.update({
+        saldo: firebase.firestore.FieldValue.increment(ultimo.valor)
+      });
+    }
+
+  } catch(e){
+    console.error("Erro PIX:", e);
+  }
+}
+
+setInterval(atualizarSaldoPIX, 5000);
 </script>
 
 </body>
