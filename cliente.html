@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Área do Cliente</title>
+<title>Cartomantes Online</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -13,47 +13,62 @@
 body {
   margin:0;
   font-family:Arial;
-  background:#f9fafc;
+  background:#f5f7fb;
 }
 
+/* 🔵 HEADER */
 header {
   background: linear-gradient(135deg,#007bff,#00c6ff);
   color:white;
-  padding:20px;
-  text-align:center;
-  position:relative;
+  padding:15px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-.user {
-  position:absolute;
-  top:10px;
-  right:20px;
-  font-size:14px;
+/* 🏷️ NOME DO SITE */
+.logo {
+  font-size:18px;
   font-weight:bold;
 }
 
-nav {
-  background:#222;
-  padding:10px;
-  text-align:center;
+/* 💰 SALDO */
+.saldo-topo {
+  text-align:left;
 }
 
-nav a {
-  color:white;
-  margin:0 10px;
-  text-decoration:none;
+.saldo-topo small {
+  display:block;
+  font-size:12px;
+  opacity:0.8;
 }
 
+#saldoValor {
+  font-size:20px;
+  font-weight:bold;
+}
+
+/* 👤 USUÁRIO */
+.user-box {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.user-box img {
+  width:35px;
+  height:35px;
+  border-radius:50%;
+}
+
+.user-info {
+  text-align:right;
+  font-size:13px;
+}
+
+/* 🧱 CONTEÚDO */
 .container {
   padding:30px;
-}
-
-.card {
-  background:white;
-  padding:20px;
-  margin-bottom:20px;
-  border-radius:10px;
-  box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 </style>
 </head>
@@ -61,22 +76,28 @@ nav a {
 <body>
 
 <header>
-  <div class="user" id="userNome">Carregando...</div>
-  <h1>Área do Cliente</h1>
-</header>
 
-<nav>
-  <a href="#">Início</a>
-  <a href="#">Serviços</a>
-</nav>
-
-<div class="container">
-
-  <div class="card">
-    <h2>Bem-vindo</h2>
-    <p id="mensagem"></p>
+  <!-- 💰 SALDO -->
+  <div class="saldo-topo">
+    <small>Saldo disponível</small>
+    <div id="saldoValor">R$ 0,00</div>
   </div>
 
+  <!-- 🏷️ LOGO -->
+  <div class="logo">Cartomantes Online</div>
+
+  <!-- 👤 USUÁRIO -->
+  <div class="user-box">
+    <div class="user-info">
+      <div id="userNome">Carregando...</div>
+    </div>
+    <img id="userFoto" src="" alt="">
+  </div>
+
+</header>
+
+<div class="container">
+  <!-- espaço em branco conforme pediu -->
 </div>
 
 <script>
@@ -89,34 +110,38 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔥 pega da URL
-const urlParams = new URLSearchParams(window.location.search);
-const userId = urlParams.get("id");
+const email = localStorage.getItem("usuario_email");
 
-// 🔥 tenta local primeiro
-const nomeLocal = localStorage.getItem("usuario_nome");
-
-if(nomeLocal){
-  document.getElementById("userNome").innerText = "👤 " + nomeLocal;
-  document.getElementById("mensagem").innerText = "Bem-vindo, " + nomeLocal;
-} 
-
-// 🔥 busca no firebase se necessário
-if(userId){
-  db.collection("usuarios").doc(userId).get()
-  .then(doc=>{
-    if(doc.exists){
-      const data = doc.data();
-
-      document.getElementById("userNome").innerText = "👤 " + data.nome;
-      document.getElementById("mensagem").innerText = "Bem-vindo, " + data.nome;
-
-      // salva local
-      localStorage.setItem("usuario_nome", data.nome);
-      localStorage.setItem("usuario_email", data.email);
-    }
-  });
+if(!email){
+  alert("Faça login primeiro");
+  window.location.href = "loguin.html";
 }
+
+/* 🔥 CARREGA DADOS DO USUÁRIO */
+db.collection("usuarios").doc(email).onSnapshot(doc => {
+  if(doc.exists){
+
+    const data = doc.data();
+
+    // 👤 nome
+    document.getElementById("userNome").innerText = data.nome;
+
+    // 📸 foto
+    if(data.foto){
+      document.getElementById("userFoto").src = data.foto;
+    }
+
+    // 💰 saldo
+    const saldo = data.saldo || 0;
+
+    document.getElementById("saldoValor").innerText =
+      saldo.toLocaleString("pt-BR", {
+        style:"currency",
+        currency:"BRL"
+      });
+
+  }
+});
 </script>
 
 </body>
