@@ -26,17 +26,13 @@ header {
   align-items:center;
 }
 
-/* 🏷️ NOME DO SITE */
+/* 🏷️ LOGO */
 .logo {
   font-size:18px;
   font-weight:bold;
 }
 
 /* 💰 SALDO */
-.saldo-topo {
-  text-align:left;
-}
-
 .saldo-topo small {
   display:block;
   font-size:12px;
@@ -56,17 +52,33 @@ header {
 }
 
 .user-box img {
-  width:35px;
-  height:35px;
+  width:40px;
+  height:40px;
   border-radius:50%;
+  border:2px solid white;
 }
 
+/* INFO */
 .user-info {
   text-align:right;
   font-size:13px;
 }
 
-/* 🧱 CONTEÚDO */
+/* 🔴 BOTÃO SAIR */
+.logout {
+  display:block;
+  font-size:12px;
+  margin-top:3px;
+  color:#ffe;
+  cursor:pointer;
+  text-decoration:underline;
+}
+
+.logout:hover {
+  color:#fff;
+}
+
+/* CONTEÚDO */
 .container {
   padding:30px;
 }
@@ -83,21 +95,21 @@ header {
     <div id="saldoValor">R$ 0,00</div>
   </div>
 
-  <!-- 🏷️ LOGO -->
+  <!-- 🏷️ SITE -->
   <div class="logo">Cartomantes Online</div>
 
   <!-- 👤 USUÁRIO -->
   <div class="user-box">
     <div class="user-info">
       <div id="userNome">Carregando...</div>
+      <span class="logout" onclick="logout()">Sair</span>
     </div>
-    <img id="userFoto" src="" alt="">
+    <img id="userFoto" src="https://via.placeholder.com/40" alt="">
   </div>
 
 </header>
 
 <div class="container">
-  <!-- espaço em branco conforme pediu -->
 </div>
 
 <script>
@@ -113,25 +125,24 @@ const db = firebase.firestore();
 const email = localStorage.getItem("usuario_email");
 
 if(!email){
-  alert("Faça login primeiro");
   window.location.href = "loguin.html";
 }
 
-/* 🔥 CARREGA DADOS DO USUÁRIO */
+/* 🔥 CARREGA DADOS */
 db.collection("usuarios").doc(email).onSnapshot(doc => {
   if(doc.exists){
 
     const data = doc.data();
 
-    // 👤 nome
-    document.getElementById("userNome").innerText = data.nome;
+    // nome
+    document.getElementById("userNome").innerText = data.nome || "Usuário";
 
-    // 📸 foto
+    // foto (corrigido)
     if(data.foto){
       document.getElementById("userFoto").src = data.foto;
     }
 
-    // 💰 saldo
+    // saldo
     const saldo = data.saldo || 0;
 
     document.getElementById("saldoValor").innerText =
@@ -139,9 +150,14 @@ db.collection("usuarios").doc(email).onSnapshot(doc => {
         style:"currency",
         currency:"BRL"
       });
-
   }
 });
+
+/* 🔓 LOGOUT */
+function logout(){
+  localStorage.clear();
+  window.location.href = "loguin.html";
+}
 </script>
 
 </body>
